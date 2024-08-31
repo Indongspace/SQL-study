@@ -1,0 +1,55 @@
+-- 4.전설여부에따른포켓몬수를알수있는쿼리를작성해주세요
+-- SELECT
+--   COUNT(id) AS legend_cnt
+-- FROM basic.pokemon
+-- WHERE 
+--   is_legendary = true
+-- SELECT
+--   is_legendary,
+--   COUNT(id) AS pokemon_cnt
+-- FROM basic.pokemon
+-- GROUP BY
+--   -- is_legendary
+--   1
+-- ORDER BY 2 DESC
+-- GROUP BY : is_legendary가 길다. GROUP BY에 컬럼이 많이 있을 수 있음
+-- GROUP BY 1 => SELECT의 첫 컬럼을 의미
+-- ORDER BY에도 1,2 등을 사용할 수 있음
+-- 1,2 => 쿼리를 빠르게 작성하고, 결과를 보는 과정,  완성된 쿼리문에서는 1,2 같은 표현보단 명확하게 컬럼을 명시하는게 좋음(가독성)
+
+-- 5.동명이인이있는이름은무엇일까요?(한번에찾으려고하지않고단계적으로가도 괜찮아요)
+-- SELECT
+--   id
+-- FROM basic.pokemon
+-- WHERE 
+--   kor_name IS DISTINCT
+-- SELECT
+--   name,
+--   COUNT(name) AS trainer_cnt
+-- FROM basic.trainer
+-- GROUP BY
+--   name
+-- HAVING
+--   trainer_cnt >= 2
+-- WHERE : 원본 데이터 FROM 절에 있는 데이터에 조건을 설정하고 싶은 경우
+-- HAVING : GROUP BY와 함께 집계 결과에 조건을 설정하고 싶은 경우
+-- SELECT
+--   *
+-- FROM (
+--   SELECT
+--     name,
+--     COUNT(name) AS trainer_cnt
+--   FROM basic.trainer
+--   GROUP BY
+--      name
+-- )
+-- WHERE
+--   trainer_cnt >= 2
+# HAVING을 쓰면 쿼리 줄 수가 줄어든다
+
+-- 6.trainer테이블에서“Iris”트레이너의정보를알수있는쿼리를작성해주세요
+-- SELECT
+--   *
+-- FROM basic.trainer
+-- WHERE 
+--   name = 'Iris'
