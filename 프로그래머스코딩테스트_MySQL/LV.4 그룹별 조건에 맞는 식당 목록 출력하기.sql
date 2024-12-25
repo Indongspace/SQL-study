@@ -6,41 +6,38 @@
 # MEMBER_PROFILE와 REST_REVIEW 테이블에서 리뷰를 가장 많이 작성한 회원의 리뷰들을 조회하는 SQL문을 작성해주세요. 회원 이름, 리뷰 텍스트, 리뷰 작성일이 출력되도록 작성해주시고, 결과는 리뷰 작성일을 기준으로 오름차순, 리뷰 작성일이 같다면 리뷰 텍스트를 기준으로 오름차순 정렬해주세요.
 
 # 쿼리를 작성하는 목표, 확인할 지표 : 리뷰 가장 많이 작성한 회원 리뷰 조회 / COUNT(MEMBER_ID)
-# 쿼리 계산 방법 : 1. INNER JOIN으로 BASE 생성 -> 2. COUNT(*) LIMIT 1로 리뷰 가장 많이 작성한 회원ID 추출 -> 3. 가장 많은 회원 ID와 BASE를 INNER JOIN -> 4. ORDER BY
+# 쿼리 계산 방법 : 1. GROUP BY COUNT()를 이용해서 id별 리뷰 개수 추출  -> 2. WHERE 조건으로 MAX(review_cnt)를 이용해서 리뷰 가장 많이 작성한 회원id 추출 -> 3. WHERE 조건으로 가장 많은 리뷰를 달은 회원(id)의 정보만 추출 -> 4. ORDER BY
 # 데이터의 기간 :
 # 사용할 테이블 : MEMBER_PROFILE, REST_REVIEW
 # Join KEY : MEMBER_ID
 # 데이터 특징 :
-WITH BASE AS (
-    SELECT  
-        MP.MEMBER_ID,
-        MP.MEMBER_NAME,
-        RE.REVIEW_TEXT,
-        RE.REVIEW_DATE
-    FROM MEMBER_PROFILE AS MP
-    INNER JOIN REST_REVIEW AS RE
-    ON MP.MEMBER_ID = RE.MEMBER_ID
-), MOST_REVIEW AS (
+WITH review_count AS (
     SELECT
-        MEMBER_ID,
-        COUNT(*) AS REVIEW_CNT
-    FROM BASE
+        m.member_id,
+        COUNT(*) AS review_cnt
+    FROM member_profile AS m
+    INNER JOIN rest_review AS r
+    ON m.member_id = r.member_id
     GROUP BY
-        MEMBER_ID
-    ORDER BY
-        REVIEW_CNT DESC
-    LIMIT 1
+        m.member_id
+), max_review_id AS (
+    SELECT
+        member_id
+    FROM review_count
+    WHERE
+        review_cnt = (SELECT MAX(review_cnt) FROM review_count)
 )
-
 SELECT
-    BASE.MEMBER_NAME,
-    BASE.REVIEW_TEXT,
-    DATE_FORMAT(BASE.REVIEW_DATE, '%Y-%m-%d') AS REVIEW_DATE
-FROM BASE
-INNER JOIN MOST_REVIEW
-ON BASE.MEMBER_ID = MOST_REVIEW.MEMBER_ID
+    m.member_name,
+    r.review_text,
+    DATE_FORMAT(r.review_date, '%Y-%m-%d') AS review_date
+FROM member_profile AS m
+INNER JOIN rest_review AS r
+ON m.member_id = r.member_id
+WHERE
+    m.member_id IN (SELECT member_id FROM max_review_id)
 ORDER BY
-    REVIEW_DATE ASC,
-    REVIEW_TEXT ASC
+    review_date ASC, review_text ASC 
+    
     
     
