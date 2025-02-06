@@ -1,0 +1,4 @@
+SELECT
+  *
+FROM edges
+LIMIT 4000
