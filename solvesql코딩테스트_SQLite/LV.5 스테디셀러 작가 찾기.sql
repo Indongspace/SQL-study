@@ -1,19 +1,32 @@
-WITH Ranked AS (
-    SELECT DISTINCT author, year
+WITH
+  filtering AS (
+    SELECT DISTINCT
+      author,
+      year
     FROM books
     WHERE genre = 'Fiction'
-),
-YearGroups AS (
-    SELECT author, year,
-           year - ROW_NUMBER() OVER (PARTITION BY author ORDER BY year) AS grp
-    FROM Ranked
-),
-Grouped AS (
-    SELECT author, MAX(year) AS year, COUNT(*) AS depth
-    FROM YearGroups
-    GROUP BY author, grp
-    HAVING COUNT(*) >= 5
-)
-SELECT author, year, depth
-FROM Grouped
-ORDER BY year DESC, depth DESC;
+  ), calc_prev_year AS (
+    SELECT
+      author,
+      year,
+      lag(year, 1) OVER (PARTITION BY author ORDER BY year) prev_year
+    FROM filtering
+  ), calc_group_num AS (
+    SELECT
+      author,
+      year,
+      sum(
+        CASE
+        WHEN year - prev_year = 1 THEN 0 ELSE 1
+        END
+      ) OVER (PARTITION BY author ORDER BY year) group_num
+    FROM calc_prev_year
+  )
+
+SELECT
+  author,
+  max(year) year,
+  count(*) depth
+FROM calc_group_num
+GROUP BY author, group_num
+HAVING count(*) >= 5
